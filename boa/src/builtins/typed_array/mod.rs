@@ -71,6 +71,7 @@ where
     P: FnOnce() -> JsObject,
 {
     // 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
+    // TODO: move out "GetPrototypeFromConstructor"
     let proto = new_target
         .as_object()
         .and_then(|obj| {
