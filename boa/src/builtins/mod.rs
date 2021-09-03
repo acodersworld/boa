@@ -25,6 +25,7 @@ pub mod regexp;
 pub mod set;
 pub mod string;
 pub mod symbol;
+pub mod typed_array;
 pub mod undefined;
 
 pub(crate) use self::{

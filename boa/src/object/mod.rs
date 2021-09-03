@@ -92,6 +92,7 @@ pub struct ObjectData {
 pub enum ObjectKind {
     Array,
     ArrayIterator(ArrayIterator),
+    ArrayBuffer,
     Map(OrderedMap<JsValue>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
@@ -111,6 +112,7 @@ pub enum ObjectKind {
     Date(Date),
     Global,
     NativeObject(Box<dyn NativeObject>),
+    TypedArray,
 }
 
 impl ObjectData {
@@ -285,33 +287,31 @@ impl ObjectData {
 
 impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Array => "Array",
-                Self::ArrayIterator(_) => "ArrayIterator",
-                Self::ForInIterator(_) => "ForInIterator",
-                Self::Function(_) => "Function",
-                Self::RegExp(_) => "RegExp",
-                Self::RegExpStringIterator(_) => "RegExpStringIterator",
-                Self::Map(_) => "Map",
-                Self::MapIterator(_) => "MapIterator",
-                Self::Set(_) => "Set",
-                Self::SetIterator(_) => "SetIterator",
-                Self::String(_) => "String",
-                Self::StringIterator(_) => "StringIterator",
-                Self::Symbol(_) => "Symbol",
-                Self::Error => "Error",
-                Self::Ordinary => "Ordinary",
-                Self::Boolean(_) => "Boolean",
-                Self::Number(_) => "Number",
-                Self::BigInt(_) => "BigInt",
-                Self::Date(_) => "Date",
-                Self::Global => "Global",
-                Self::NativeObject(_) => "NativeObject",
-            }
-        )
+        f.write_str(match self {
+            Self::Array => "Array",
+            Self::ArrayIterator(_) => "ArrayIterator",
+            Self::ArrayBuffer => "ArrayBuffer",
+            Self::ForInIterator(_) => "ForInIterator",
+            Self::Function(_) => "Function",
+            Self::RegExp(_) => "RegExp",
+            Self::RegExpStringIterator(_) => "RegExpStringIterator",
+            Self::Map(_) => "Map",
+            Self::MapIterator(_) => "MapIterator",
+            Self::Set(_) => "Set",
+            Self::SetIterator(_) => "SetIterator",
+            Self::String(_) => "String",
+            Self::StringIterator(_) => "StringIterator",
+            Self::Symbol(_) => "Symbol",
+            Self::Error => "Error",
+            Self::Ordinary => "Ordinary",
+            Self::Boolean(_) => "Boolean",
+            Self::Number(_) => "Number",
+            Self::BigInt(_) => "BigInt",
+            Self::Date(_) => "Date",
+            Self::Global => "Global",
+            Self::NativeObject(_) => "NativeObject",
+            Self::TypedArray => "TypedArray",
+        })
     }
 }
 
@@ -356,13 +356,12 @@ impl Object {
         }
     }
 
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
+    /// `OrdinaryObjectCreate` is used to specify the runtime creation of new ordinary objects.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-objectcreate
-    // TODO: proto should be a &Value here
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     #[inline]
     pub fn create(proto: JsValue) -> Self {
         let mut obj = Self::new();
@@ -512,6 +511,18 @@ impl Object {
             } => Some(iter),
             _ => None,
         }
+    }
+
+    /// Checks if it an `ArrayBuffer` object.
+    #[inline]
+    pub fn is_array_buffer(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer,
+                ..
+            }
+        )
     }
 
     #[inline]
@@ -830,6 +841,7 @@ impl Object {
         )
     }
 
+    #[inline]
     pub fn as_date(&self) -> Option<&Date> {
         match self.data {
             ObjectData {
@@ -863,6 +875,18 @@ impl Object {
         }
     }
 
+    /// Checks if it a `TypedArray` object.
+    #[inline]
+    pub fn is_typed_array(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::RegExp(_),
+                ..
+            }
+        )
+    }
+
     /// Checks if it an ordinary object.
     #[inline]
     pub fn is_ordinary(&self) -> bool {
@@ -875,6 +899,7 @@ impl Object {
         )
     }
 
+    /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype_instance(&self) -> &JsValue {
         &self.prototype
