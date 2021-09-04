@@ -881,7 +881,7 @@ impl Object {
         matches!(
             self.data,
             ObjectData {
-                kind: ObjectKind::RegExp(_),
+                kind: ObjectKind::TypedArray,
                 ..
             }
         )
