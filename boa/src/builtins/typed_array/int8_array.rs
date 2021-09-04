@@ -65,7 +65,7 @@ impl Int8Array {
         // 6. Else,
 
         // a. Let firstArgument be args[0].
-        let first_argument = args.get(0).expect("first argument disappeared"); // We already know the legth is not 0
+        let first_argument = args[0];
 
         // b. If Type(firstArgument) is Object, then
         if let Some(first_argument) = first_argument.as_object() {
